@@ -99,7 +99,7 @@ function statusPill(status) {
 }
 
 export default function App() {
-  const API_BASE = "http://localhost:5000/api";
+  const API_BASE = "https://ideal-lettings-demo.onrender.com/api";
   const DASHBOARD_API_KEY = "123456";
 
   const [view, setView] = useState("landing");
