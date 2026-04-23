@@ -75,6 +75,7 @@ def init_db():
 
 def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str]:
     if not config.SMTP_USERNAME or not config.SMTP_PASSWORD or not config.SMTP_FROM_EMAIL:
+        print("EMAIL ERROR: SMTP not configured")
         return False, "SMTP not configured"
 
     msg = EmailMessage()
@@ -84,20 +85,16 @@ def send_email(to_email: str, subject: str, body: str) -> Tuple[bool, str]:
     msg.set_content(body)
 
     try:
-        with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT) as server:
+        print(f"EMAIL: attempting to send to {to_email}")
+        with smtplib.SMTP(config.SMTP_HOST, config.SMTP_PORT, timeout=20) as server:
             server.starttls()
             server.login(config.SMTP_USERNAME, config.SMTP_PASSWORD)
             server.send_message(msg)
+        print(f"EMAIL SUCCESS: sent to {to_email}")
         return True, "sent"
     except Exception as exc:
+        print(f"EMAIL ERROR: {exc}")
         return False, str(exc)
-
-
-def require_dashboard_key():
-    api_key = request.headers.get("X-API-Key")
-    if api_key != config.DASHBOARD_API_KEY:
-        return False, (jsonify({"error": "Unauthorized"}), 401)
-    return True, None
 
 
 def validate_inquiry_payload(payload: Dict[str, Any]) -> List[str]:
@@ -180,7 +177,20 @@ Employment status: {data.get("employmentStatus", "Not provided")}
 Message: {data.get("message", "No message")}
 """
     )
+staff_sent, staff_result = send_email(
+    config.AGENCY_EMAIL,
+    f"New inquiry for {PROPERTY['title']}",
+    f"""New inquiry received
 
+Name: {data["fullName"]}
+Phone: {data["phone"]}
+Email: {data["email"]}
+Move-in date: {data.get("moveInDate", "Not provided")}
+Employment status: {data.get("employmentStatus", "Not provided")}
+Message: {data.get("message", "No message")}
+"""
+)
+print(f"Staff email result: sent={staff_sent}, status={staff_result}")
     if customer_sent:
         with closing(get_db_connection()) as conn:
             conn.execute(
@@ -195,7 +205,7 @@ Message: {data.get("message", "No message")}
         "autoReplySent": customer_sent,
         "autoReplyStatus": customer_result
     }
-
+print(f"Customer email result: sent={customer_sent}, status={customer_result}")
 
 @app.get("/api/dashboard/inquiries")
 def get_inquiries():
