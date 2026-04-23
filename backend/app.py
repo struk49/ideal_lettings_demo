@@ -223,6 +223,10 @@ def get_inquiries():
 
     return {"inquiries": [dict(r) for r in rows]}
 
+@app.get("/")
+def home():
+    return {"message": "Ideal Lettings backend is running"}
+
 
 if __name__ == "__main__":
     init_db()
