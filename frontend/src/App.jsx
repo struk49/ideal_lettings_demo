@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 const pageWidth = {
   maxWidth: 1280,
   margin: "0 auto",
-  paddingLeft: 24,
-  paddingRight: 24,
+  paddingLeft: 20,
+  paddingRight: 20,
 };
 
 const fieldStyle = {
@@ -44,12 +44,15 @@ function Logo() {
           justifyContent: "center",
           borderRadius: 8,
           boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+          flexShrink: 0,
         }}
       >
         IL
       </div>
       <div>
-        <div style={{ fontWeight: 700, fontSize: 22, color: "#111111" }}>Ideal Lettings</div>
+        <div style={{ fontWeight: 700, fontSize: 22, color: "#111111", lineHeight: 1.1 }}>
+          Ideal Lettings
+        </div>
         <div style={{ fontSize: 12, color: "#6b7280", letterSpacing: 0.5 }}>
           Property Management Company
         </div>
@@ -58,21 +61,30 @@ function Logo() {
   );
 }
 
-function MetricCard({ icon, value, label, subtext }) {
+function MetricCard({ icon, value, label, subtext, dark = false }) {
   return (
     <div
       style={{
-        background: "#ffffff",
-        color: "#111111",
-        border: "1px solid #e5e7eb",
+        background: dark ? "#111111" : "#ffffff",
+        color: dark ? "#ffffff" : "#111111",
+        border: dark ? "none" : "1px solid #e5e7eb",
         borderRadius: 16,
         padding: 22,
+        minHeight: 150,
       }}
     >
       <div style={{ fontSize: 28, marginBottom: 8 }}>{icon}</div>
       <div style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>{value}</div>
-      <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 14, color: "#334155" }}>{subtext}</div>
+      <div
+        style={{
+          fontSize: 13,
+          color: dark ? "#d1d5db" : "#6b7280",
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
+      <div style={{ fontSize: 14, color: dark ? "#f3f4f6" : "#334155" }}>{subtext}</div>
     </div>
   );
 }
@@ -98,9 +110,28 @@ function statusPill(status) {
   };
 }
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    function onResize() {
+      setWidth(window.innerWidth);
+    }
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  return width;
+}
+
 export default function App() {
   const API_BASE = "https://ideal-lettings-demo.onrender.com/api";
   const DASHBOARD_API_KEY = "123456";
+
+  const width = useWindowWidth();
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1100;
 
   const [view, setView] = useState("landing");
   const [form, setForm] = useState({
@@ -111,10 +142,12 @@ export default function App() {
     employmentStatus: "",
     message: "",
   });
+
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [dashboardError, setDashboardError] = useState("");
+
   const [inquiries, setInquiries] = useState([
     {
       id: "demo-1",
@@ -160,6 +193,7 @@ export default function App() {
     const newLeads = inquiries.filter((lead) => lead.status === "New").length;
     const followUps = inquiries.filter((lead) => lead.status === "Contacted").length;
     const booked = inquiries.filter((lead) => lead.status === "Application Received").length;
+
     return [
       { label: "New Inquiries", value: String(newLeads) },
       { label: "Follow Ups", value: String(followUps) },
@@ -198,6 +232,7 @@ export default function App() {
   async function loadDashboardInquiries() {
     try {
       setDashboardError("");
+
       const response = await fetch(`${API_BASE}/dashboard/inquiries`, {
         headers: {
           "X-API-Key": DASHBOARD_API_KEY,
@@ -281,7 +316,14 @@ export default function App() {
 
   if (view === "dashboard") {
     return (
-      <div style={{ minHeight: "100vh", background: "#f8fafc", color: "#111827", fontFamily: "Arial, sans-serif" }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#f8fafc",
+          color: "#111827",
+          fontFamily: "Arial, sans-serif",
+        }}
+      >
         <header
           style={{
             background: "#0f0f10",
@@ -323,7 +365,7 @@ export default function App() {
                 IL
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 20 }}>Ideal Lettings</div>
+                <div style={{ fontWeight: 700, fontSize: isMobile ? 18 : 20 }}>Ideal Lettings</div>
                 <div style={{ fontSize: 12, color: "#d1d5db", letterSpacing: 0.5 }}>
                   PRIVATE DASHBOARD
                 </div>
@@ -340,6 +382,7 @@ export default function App() {
                 border: "none",
                 fontWeight: 600,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               Back to Website
@@ -347,13 +390,37 @@ export default function App() {
           </div>
         </header>
 
-        <main style={{ ...pageWidth, paddingTop: 36, paddingBottom: 48 }}>
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ color: "#111111", fontWeight: 700, fontSize: 13, letterSpacing: 1.2, marginBottom: 8 }}>
+        <main style={{ ...pageWidth, paddingTop: 28, paddingBottom: 40 }}>
+          <div style={{ marginBottom: 24 }}>
+            <div
+              style={{
+                color: "#111111",
+                fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: 1.2,
+                marginBottom: 8,
+              }}
+            >
               STAFF-ONLY AREA
             </div>
-            <h1 style={{ fontSize: 38, margin: "0 0 10px 0" }}>Tenant Inquiries</h1>
-            <p style={{ color: "#475569", fontSize: 17, lineHeight: 1.7, maxWidth: 820, margin: 0 }}>
+            <h1
+              style={{
+                fontSize: isMobile ? 28 : 38,
+                margin: "0 0 10px 0",
+                lineHeight: 1.1,
+              }}
+            >
+              Tenant Inquiries
+            </h1>
+            <p
+              style={{
+                color: "#475569",
+                fontSize: isMobile ? 15 : 17,
+                lineHeight: 1.7,
+                maxWidth: 820,
+                margin: 0,
+              }}
+            >
               This private dashboard shows new rental inquiries, follow-up activity, and tenant interest for the featured property.
             </p>
           </div>
@@ -377,9 +444,13 @@ export default function App() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gridTemplateColumns: isMobile
+                ? "1fr"
+                : isTablet
+                ? "repeat(2, minmax(0, 1fr))"
+                : "repeat(4, minmax(0, 1fr))",
               gap: 16,
-              marginBottom: 28,
+              marginBottom: 24,
             }}
           >
             {stats.map((stat) => (
@@ -394,121 +465,219 @@ export default function App() {
                 }}
               >
                 <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 8 }}>{stat.label}</div>
-                <div style={{ fontSize: 34, fontWeight: 700 }}>{stat.value}</div>
+                <div style={{ fontSize: isMobile ? 28 : 34, fontWeight: 700 }}>{stat.value}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ display: "grid", gap: 18 }}>
-            {inquiries.map((lead) => (
-              <div
-                key={`${lead.id}-${lead.email}`}
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 18,
-                  padding: 22,
-                  boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
-                }}
-              >
+          {isMobile ? (
+            <div style={{ display: "grid", gap: 16 }}>
+              {inquiries.map((lead) => (
                 <div
+                  key={`${lead.id}-${lead.email}`}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 16,
-                    flexWrap: "wrap",
-                    marginBottom: 14,
+                    background: "#ffffff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 18,
+                    padding: 18,
+                    boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
                   }}
                 >
-                  <div>
-                    <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 4 }}>{lead.name}</div>
-                    <div style={{ color: "#64748b", fontSize: 14 }}>
-                      {lead.property}
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>{lead.name}</div>
+                      <div style={{ color: "#64748b", fontSize: 13, lineHeight: 1.5 }}>{lead.property}</div>
+                    </div>
+
+                    <div
+                      style={{
+                        ...statusPill(lead.status),
+                        padding: "8px 10px",
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        height: "fit-content",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {lead.status}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 12,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Phone</div>
+                      <div style={{ fontWeight: 600 }}>{lead.phone}</div>
+                    </div>
+
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 12,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Email</div>
+                      <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{lead.email}</div>
+                    </div>
+
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 12,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Received</div>
+                      <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{lead.date}</div>
                     </div>
                   </div>
 
                   <div
                     style={{
-                      ...statusPill(lead.status),
-                      padding: "8px 12px",
-                      borderRadius: 999,
-                      fontSize: 13,
-                      fontWeight: 700,
-                      height: "fit-content",
+                      background: "#111827",
+                      color: "#ffffff",
+                      borderRadius: 14,
+                      padding: 14,
                     }}
                   >
-                    {lead.status}
+                    <div style={{ fontSize: 12, color: "#cbd5e1", marginBottom: 8, letterSpacing: 0.8 }}>
+                      INQUIRY NOTES
+                    </div>
+                    <div style={{ lineHeight: 1.7, fontSize: 14 }}>{lead.notes}</div>
                   </div>
                 </div>
-
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 18 }}>
+              {inquiries.map((lead) => (
                 <div
+                  key={`${lead.id}-${lead.email}`}
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                    gap: 12,
-                    marginBottom: 14,
+                    background: "#ffffff",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 18,
+                    padding: 22,
+                    boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
                   }}
                 >
                   <div
                     style={{
-                      background: "#f8fafc",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 12,
-                      padding: 14,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 16,
+                      flexWrap: "wrap",
+                      marginBottom: 14,
                     }}
                   >
-                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Phone</div>
-                    <div style={{ fontWeight: 600 }}>{lead.phone}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 21, fontWeight: 700, marginBottom: 4 }}>{lead.name}</div>
+                      <div style={{ color: "#64748b", fontSize: 14 }}>{lead.property}</div>
+                    </div>
+
+                    <div
+                      style={{
+                        ...statusPill(lead.status),
+                        padding: "8px 12px",
+                        borderRadius: 999,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        height: "fit-content",
+                      }}
+                    >
+                      {lead.status}
+                    </div>
                   </div>
 
                   <div
                     style={{
-                      background: "#f8fafc",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 12,
-                      padding: 14,
+                      display: "grid",
+                      gridTemplateColumns: isTablet
+                        ? "repeat(2, minmax(0, 1fr))"
+                        : "repeat(3, minmax(0, 1fr))",
+                      gap: 12,
+                      marginBottom: 14,
                     }}
                   >
-                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Email</div>
-                    <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{lead.email}</div>
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 14,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Phone</div>
+                      <div style={{ fontWeight: 600 }}>{lead.phone}</div>
+                    </div>
+
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 14,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Email</div>
+                      <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{lead.email}</div>
+                    </div>
+
+                    <div
+                      style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 14,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Received</div>
+                      <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{lead.date}</div>
+                    </div>
                   </div>
 
                   <div
                     style={{
-                      background: "#f8fafc",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 12,
-                      padding: 14,
+                      background: "#111827",
+                      color: "#ffffff",
+                      borderRadius: 14,
+                      padding: 16,
                     }}
                   >
-                    <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>Received</div>
-                    <div style={{ fontWeight: 600 }}>{lead.date}</div>
+                    <div style={{ fontSize: 12, color: "#cbd5e1", marginBottom: 8, letterSpacing: 0.8 }}>
+                      INQUIRY NOTES
+                    </div>
+                    <div style={{ lineHeight: 1.7 }}>{lead.notes}</div>
                   </div>
                 </div>
-
-                <div
-                  style={{
-                    background: "#111827",
-                    color: "#ffffff",
-                    borderRadius: 14,
-                    padding: 16,
-                  }}
-                >
-                  <div style={{ fontSize: 12, color: "#cbd5e1", marginBottom: 8, letterSpacing: 0.8 }}>
-                    INQUIRY NOTES
-                  </div>
-                  <div style={{ lineHeight: 1.7 }}>{lead.notes}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </main>
       </div>
     );
   }
 
   return (
-    <div ref={homeRef} style={{ minHeight: "100vh", background: "#ffffff", color: "#111827", fontFamily: "Arial, sans-serif" }}>
+    <div
+      ref={homeRef}
+      style={{
+        minHeight: "100vh",
+        background: "#ffffff",
+        color: "#111827",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
       <header
         style={{
           background: "#ffffff",
@@ -532,9 +701,19 @@ export default function App() {
         >
           <Logo />
 
-          <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: isMobile ? "stretch" : "center",
+              gap: 14,
+              flexWrap: "wrap",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
             <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 16 }}>📞 07738 427425</div>
-            <div style={{ color: "#475569", fontSize: 14 }}>✉️ bill-ideallettings@hotmail.com</div>
+            <div style={{ color: "#475569", fontSize: 14, wordBreak: "break-word" }}>
+              ✉️ bill-ideallettings@hotmail.com
+            </div>
             <button
               onClick={() => scrollToRef(formRef)}
               style={{
@@ -545,6 +724,7 @@ export default function App() {
                 border: "none",
                 cursor: "pointer",
                 fontWeight: 600,
+                width: isMobile ? "100%" : "auto",
               }}
             >
               Inquire About a Property
@@ -560,19 +740,27 @@ export default function App() {
             paddingTop: 14,
             paddingBottom: 14,
             display: "flex",
-            gap: 34,
+            gap: 24,
             flexWrap: "wrap",
             alignItems: "center",
           }}
         >
-          <button onClick={() => scrollToRef(homeRef)} style={navButtonStyle}>Home</button>
-          <button onClick={() => scrollToRef(propertiesRef)} style={navButtonStyle}>Properties to Rent</button>
-          <button onClick={() => scrollToRef(aboutRef)} style={navButtonStyle}>About</button>
-          <button onClick={() => scrollToRef(formRef)} style={navButtonStyle}>Contact</button>
+          <button onClick={() => scrollToRef(homeRef)} style={navButtonStyle}>
+            Home
+          </button>
+          <button onClick={() => scrollToRef(propertiesRef)} style={navButtonStyle}>
+            Properties to Rent
+          </button>
+          <button onClick={() => scrollToRef(aboutRef)} style={navButtonStyle}>
+            About
+          </button>
+          <button onClick={() => scrollToRef(formRef)} style={navButtonStyle}>
+            Contact
+          </button>
           <button
             onClick={() => setView("dashboard")}
             style={{
-              marginLeft: "auto",
+              marginLeft: isMobile ? 0 : "auto",
               background: "#111111",
               color: "#ffffff",
               padding: "10px 16px",
@@ -580,6 +768,7 @@ export default function App() {
               border: "none",
               fontWeight: 700,
               cursor: "pointer",
+              width: isMobile ? "100%" : "auto",
             }}
           >
             Open Dashboard
@@ -606,7 +795,14 @@ export default function App() {
               "linear-gradient(90deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.72) 45%, rgba(0,0,0,0.58) 100%)",
           }}
         />
-        <div style={{ ...pageWidth, position: "relative", paddingTop: 110, paddingBottom: 110 }}>
+        <div
+          style={{
+            ...pageWidth,
+            position: "relative",
+            paddingTop: isMobile ? 70 : 110,
+            paddingBottom: isMobile ? 70 : 110,
+          }}
+        >
           <div style={{ maxWidth: 700 }}>
             <div
               style={{
@@ -627,11 +823,26 @@ export default function App() {
               PROPERTY TO RENT
             </div>
 
-            <h1 style={{ fontSize: 58, lineHeight: 1.08, margin: "0 0 20px 0", fontWeight: 800 }}>
+            <h1
+              style={{
+                fontSize: isMobile ? 36 : isTablet ? 46 : 58,
+                lineHeight: 1.08,
+                margin: "0 0 20px 0",
+                fontWeight: 800,
+              }}
+            >
               Rent with confidence.
             </h1>
 
-            <p style={{ fontSize: 19, lineHeight: 1.8, margin: "0 0 30px 0", color: "#f3f4f6", maxWidth: 620 }}>
+            <p
+              style={{
+                fontSize: isMobile ? 16 : 19,
+                lineHeight: 1.8,
+                margin: "0 0 30px 0",
+                color: "#f3f4f6",
+                maxWidth: 620,
+              }}
+            >
               Ideal Lettings is a family-run agency committed to delivering top-quality short and long-term lettings. With a focus on trust, care, and satisfaction, we provide a high-end, personal service that you can rely on.
             </p>
 
@@ -647,6 +858,7 @@ export default function App() {
                   border: "1px solid rgba(255,255,255,0.2)",
                   cursor: "pointer",
                   boxShadow: "0 10px 24px rgba(0,0,0,0.28)",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Inquire About a Property to Rent
@@ -661,6 +873,7 @@ export default function App() {
                   fontWeight: 700,
                   border: "none",
                   cursor: "pointer",
+                  width: isMobile ? "100%" : "auto",
                 }}
               >
                 Call 07738 427425
@@ -670,28 +883,32 @@ export default function App() {
         </div>
       </section>
 
-      <section style={{ ...pageWidth, paddingTop: 60, paddingBottom: 28 }}>
+      <section style={{ ...pageWidth, paddingTop: 40, paddingBottom: 24 }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : isTablet
+              ? "repeat(2, minmax(0, 1fr))"
+              : "repeat(4, minmax(0, 1fr))",
             gap: 16,
           }}
         >
-          <div
-            style={{
-              background: "#111111",
-              color: "#ffffff",
-              borderRadius: 16,
-              padding: 22,
-            }}
-          >
-            <div style={{ fontSize: 13, color: "#d1d5db", marginBottom: 8 }}>Trusted Local Team</div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>Family-Run Service</div>
-          </div>
-
+          <MetricCard
+            icon="🏡"
+            value="Family-Run"
+            label="Trusted Local Team"
+            subtext="Personal service you can rely on"
+            dark
+          />
           <MetricCard icon="🏠" value="1" label="Featured property" subtext="Currently highlighted to rent" />
-          <MetricCard icon="💬" value={String(inquiries.length)} label="Active inquiries" subtext="Interest captured through the system" />
+          <MetricCard
+            icon="💬"
+            value={String(inquiries.length)}
+            label="Active inquiries"
+            subtext="Interest captured through the system"
+          />
           <MetricCard icon="⚡" value="< 30s" label="Response speed" subtext="Automatic reply process enabled" />
         </div>
       </section>
@@ -700,7 +917,7 @@ export default function App() {
         ref={propertiesRef}
         style={{
           ...pageWidth,
-          paddingTop: 28,
+          paddingTop: 20,
           paddingBottom: 24,
         }}
       >
@@ -712,12 +929,12 @@ export default function App() {
             boxShadow: "0 12px 28px rgba(15,23,42,0.05)",
             padding: 18,
             display: "grid",
-            gridTemplateColumns: "360px 1fr",
+            gridTemplateColumns: isMobile ? "1fr" : "minmax(280px, 360px) minmax(0, 1fr)",
             gap: 22,
             alignItems: "center",
           }}
         >
-          <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", minHeight: 280 }}>
+          <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", minHeight: isMobile ? 220 : 280 }}>
             <img
               src="/house_to_let.jpg"
               alt="3-bedroom house for rent"
@@ -759,21 +976,36 @@ export default function App() {
           </div>
 
           <div>
-            <h3 style={{ fontSize: 38, margin: "0 0 16px 0", fontWeight: 800 }}>
+            <h3
+              style={{
+                fontSize: isMobile ? 28 : 38,
+                margin: "0 0 16px 0",
+                fontWeight: 800,
+                lineHeight: 1.1,
+              }}
+            >
               3-Bedroom House for Rent - £1,300 pcm
             </h3>
-            <p style={{ fontSize: 17, color: "#334155", lineHeight: 1.8, marginBottom: 20 }}>
+
+            <p style={{ fontSize: isMobile ? 15 : 17, color: "#334155", lineHeight: 1.8, marginBottom: 20 }}>
               A well-presented 3-bedroom home located in a quiet neighbourhood, ideal for families or professionals seeking comfortable living with outdoor space.
             </p>
 
-            <div style={{ fontSize: 32, fontWeight: 800, color: "#0f172a", marginBottom: 16 }}>
+            <div
+              style={{
+                fontSize: isMobile ? 28 : 32,
+                fontWeight: 800,
+                color: "#0f172a",
+                marginBottom: 16,
+              }}
+            >
               £1,300 <span style={{ fontSize: 18, fontWeight: 500 }}>/ month</span>
             </div>
 
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(180px, 1fr))",
                 gap: 12,
                 marginBottom: 18,
                 color: "#334155",
@@ -803,6 +1035,7 @@ export default function App() {
                 fontWeight: 700,
                 fontSize: 16,
                 cursor: "pointer",
+                width: isMobile ? "100%" : "auto",
               }}
             >
               Inquire About This Property ›
@@ -815,19 +1048,29 @@ export default function App() {
         ref={aboutRef}
         style={{
           ...pageWidth,
-          paddingTop: 28,
-          paddingBottom: 70,
+          paddingTop: 20,
+          paddingBottom: 60,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr" : "minmax(0, 1fr) 420px",
           gap: 28,
           alignItems: "start",
         }}
       >
         <div>
-          <div style={{ color: "#111111", fontWeight: 700, fontSize: 13, letterSpacing: 1.2, marginBottom: 10 }}>
+          <div
+            style={{
+              color: "#111111",
+              fontWeight: 700,
+              fontSize: 13,
+              letterSpacing: 1.2,
+              marginBottom: 10,
+            }}
+          >
             PROPERTY INQUIRY
           </div>
-          <h2 style={{ fontSize: 38, margin: "0 0 14px 0" }}>Inquire about this property</h2>
+          <h2 style={{ fontSize: isMobile ? 28 : 38, margin: "0 0 14px 0", lineHeight: 1.1 }}>
+            Inquire about this property
+          </h2>
           <p style={{ color: "#64748b", margin: "0 0 24px 0", lineHeight: 1.8 }}>
             Fill in your details below and a member of the Ideal Lettings team will contact you to discuss the property and next steps.
           </p>
@@ -840,7 +1083,7 @@ export default function App() {
               background: "#ffffff",
               border: "1px solid #e5e7eb",
               borderRadius: 18,
-              padding: 24,
+              padding: isMobile ? 18 : 24,
               boxShadow: "0 8px 24px rgba(15,23,42,0.05)",
             }}
             onSubmit={handleSubmit}
@@ -879,6 +1122,7 @@ export default function App() {
                 opacity: submitting ? 0.7 : 1,
                 fontWeight: 700,
                 fontSize: 15,
+                width: "100%",
               }}
             >
               {submitting ? "Sending..." : "Send Inquiry"}
@@ -923,14 +1167,16 @@ export default function App() {
             background: "#111111",
             color: "#ffffff",
             borderRadius: 20,
-            padding: 28,
+            padding: isMobile ? 20 : 28,
             boxShadow: "0 14px 32px rgba(15,23,42,0.12)",
           }}
         >
           <div style={{ color: "#d1d5db", fontWeight: 700, fontSize: 13, letterSpacing: 1.1, marginBottom: 10 }}>
             PRIVATE STAFF DASHBOARD
           </div>
-          <h3 style={{ fontSize: 32, margin: "0 0 14px 0" }}>See the dashboard in action</h3>
+          <h3 style={{ fontSize: isMobile ? 26 : 32, margin: "0 0 14px 0", lineHeight: 1.1 }}>
+            See the dashboard in action
+          </h3>
           <p style={{ color: "#e5e7eb", lineHeight: 1.8, marginBottom: 22 }}>
             The dashboard button opens a private staff-only area where Ideal Lettings can view rental inquiries, contact details, notes, and follow-up status.
           </p>
@@ -970,6 +1216,7 @@ export default function App() {
               cursor: "pointer",
               fontWeight: 700,
               fontSize: 15,
+              width: isMobile ? "100%" : "auto",
             }}
           >
             Open Private Dashboard

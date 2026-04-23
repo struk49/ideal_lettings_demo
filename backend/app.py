@@ -191,7 +191,7 @@ Message: {data.get("message", "No message")}
 """
 )
 print(f"Staff email result: sent={staff_sent}, status={staff_result}")
-    if customer_sent:
+if customer_sent:
         with closing(get_db_connection()) as conn:
             conn.execute(
                 "UPDATE inquiries SET auto_reply_sent = 1 WHERE id = ?",
